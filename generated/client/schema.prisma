@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  output          = "../generated/client"
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model Challenge {
+  id             String   @id @default(cuid())
+  title          String
+  description    String   @db.Text
+  difficulty     String
+  tags           String[]
+  upvotesCount   Int      @default(0)
+  downvotesCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  solutions Solution[]
+  votes     Vote[]
+
+  @@index([difficulty])
+  @@index([createdAt])
+}
+
+model Solution {
+  id             String   @id @default(cuid())
+  challengeId    String
+  userId         String
+  description    String   @db.Text
+  canvasData     Json?
+  upvotesCount   Int      @default(0)
+  downvotesCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  votes     Vote[]
+
+  @@index([challengeId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Comment {
+  id             String   @id @default(cuid())
+  solutionId     String
+  userId         String
+  content        String   @db.Text
+  upvotesCount   Int      @default(0)
+  downvotesCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  solution Solution @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  votes    Vote[]
+
+  @@index([solutionId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Vote {
+  id          String   @id @default(cuid())
+  userId      String
+  voteType    String // "upvote" or "downvote"
+  challengeId String?
+  solutionId  String?
+  commentId   String?
+  createdAt   DateTime @default(now())
+
+  challenge Challenge? @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  solution  Solution?  @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  comment   Comment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@unique([userId, solutionId])
+  @@unique([userId, commentId])
+  @@index([challengeId])
+  @@index([solutionId])
+  @@index([commentId])
+  @@index([userId])
+}
+
+model UserStats {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  score           Int      @default(0)
+  solutionsCount  Int      @default(0)
+  commentsCount   Int      @default(0)
+  upvotesGiven    Int      @default(0)
+  upvotesReceived Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([score])
+  @@index([userId])
+}
