@@ -23,6 +23,26 @@ const nextConfig = {
             },
           ],
     },
+    headers: async () => [
+        {
+          source: "/api/platform/stats",
+          headers: [
+            { key: "Access-Control-Allow-Credentials", value: "true" },
+            { key: "Access-Control-Allow-Origin", value: "https://systemstudio.com" },
+            { key: "Access-Control-Allow-Methods", value: "GET,DELETE,PATCH,POST,PUT" },
+            { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
+          ]
+        },
+        {
+          source: "/api/challenges",
+          headers: [
+            { key: "Access-Control-Allow-Credentials", value: "true" },
+            { key: "Access-Control-Allow-Origin", value: "https://systemstudio.com" },
+            { key: "Access-Control-Allow-Methods", value: "GET,DELETE,PATCH,POST,PUT" },
+            { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
+          ]
+        }
+      ],
     outputFileTracingIncludes: {
       '/api/**/*': ['./node_modules/.prisma/client/**/*'],
       '/*': ['./node_modules/.prisma/client/**/*'],
