@@ -14,6 +14,7 @@ const nextConfig = {
         }
         return config;
     },
+    turbopack: {},
     images: {
         remotePatterns: [
             {
