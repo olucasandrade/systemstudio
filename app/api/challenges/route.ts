@@ -24,31 +24,54 @@ export async function GET(request: NextRequest) {
       ...(difficulty && { difficulty }),
     };
 
-    const orderBy: { title?: "asc" | "desc", difficulty?: "asc" | "desc", solutions?: { _count: "asc" | "desc" }, createdAt?: "asc" | "desc" } = {};
-    if (sort === "title") {
-      orderBy.title = order;
-    } else if (sort === "difficulty") {
-      orderBy.difficulty = order;
-    } else if (sort === "solutions") {
-      orderBy.solutions = { _count: order };
-    } else {
-      orderBy.createdAt = order;
-    }
+    let challenges;
+    let total;
 
-    const [challenges, total] = await Promise.all([
-      database.challenge.findMany({
+    if (sort === "solutions") {
+      const allChallenges = await database.challenge.findMany({
         where,
-        skip,
-        take: pageSize,
-        orderBy,
         include: {
           _count: {
             select: { solutions: true },
           },
         },
-      }),
-      database.challenge.count({ where }),
-    ]);
+      });
+
+      allChallenges.sort((a, b) => {
+        const aCount = a._count.solutions;
+        const bCount = b._count.solutions;
+        return order === "asc" ? aCount - bCount : bCount - aCount;
+      });
+
+      total = allChallenges.length;
+      const start = skip;
+      const end = skip + pageSize;
+      challenges = allChallenges.slice(start, end);
+    } else {
+      const orderBy: { title?: "asc" | "desc", difficulty?: "asc" | "desc", createdAt?: "asc" | "desc" } = {};
+      if (sort === "title") {
+        orderBy.title = order;
+      } else if (sort === "difficulty") {
+        orderBy.difficulty = order;
+      } else {
+        orderBy.createdAt = order;
+      }
+
+      [challenges, total] = await Promise.all([
+        database.challenge.findMany({
+          where,
+          skip,
+          take: pageSize,
+          orderBy,
+          include: {
+            _count: {
+              select: { solutions: true },
+            },
+          },
+        }),
+        database.challenge.count({ where }),
+      ]);
+    }
 
     return NextResponse.json({
       data: challenges.map((challenge) => ({
@@ -64,8 +87,14 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching challenges:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
     return NextResponse.json(
-      { error: "Failed to fetch challenges" },
+      { 
+        error: "Failed to fetch challenges",
+        message: errorMessage,
+        ...(process.env.NODE_ENV === "development" && { stack: errorStack })
+      },
       { status: 500 }
     );
   }
