@@ -33,7 +33,6 @@ export async function GET(
       );
     }
 
-    // Fetch user data from Clerk
     const client = await clerkClient();
     const user = await client.users.getUser(solution.userId).catch(() => null);
 
@@ -73,7 +72,6 @@ export async function PUT(
     const body = await request.json();
     const { description, canvasData } = body;
 
-    // Check ownership
     const existingSolution = await database.solution.findUnique({
       where: { id },
     });
@@ -89,14 +87,6 @@ export async function PUT(
       return NextResponse.json(
         { error: "Forbidden: You can only edit your own solutions" },
         { status: 403 }
-      );
-    }
-
-    // Check canvas data size (limit to 1MB)
-    if (canvasData && JSON.stringify(canvasData).length > 1_000_000) {
-      return NextResponse.json(
-        { error: "Canvas data is too large (max 1MB)" },
-        { status: 400 }
       );
     }
 
@@ -132,7 +122,6 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Check ownership
     const existingSolution = await database.solution.findUnique({
       where: { id },
     });

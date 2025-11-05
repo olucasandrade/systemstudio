@@ -9,7 +9,6 @@ export async function GET(
   try {
     const { entityType, entityId } = await params;
 
-    // Validate entityType
     if (!["challenge", "solution", "comment"].includes(entityType)) {
       return NextResponse.json(
         { error: "Invalid entityType" },
@@ -17,7 +16,6 @@ export async function GET(
       );
     }
 
-    // Count votes using the correct foreign key based on entity type
     let upvotes = 0, downvotes = 0;
     if (entityType === "challenge") {
       [upvotes, downvotes] = await Promise.all([

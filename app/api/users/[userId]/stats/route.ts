@@ -9,12 +9,10 @@ export async function GET(
   try {
     const { userId } = await params;
 
-    // Get or create user stats
     let stats = await database.userStats.findUnique({
       where: { userId },
     });
 
-    // If stats don't exist, calculate and create them
     if (!stats) {
       const [solutions, comments, votesGiven, solutionUpvotes, commentUpvotes] = await Promise.all([
         database.solution.count({ where: { userId } }),

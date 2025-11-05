@@ -1,9 +1,8 @@
 import { auth } from "@/app/auth/server";
 import { database } from "@/app/database";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-// POST /api/stats/init - Initialize leaderboard data
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const { userId } = await auth();
 
@@ -13,7 +12,6 @@ export async function POST(request: NextRequest) {
 
     console.log("Initializing leaderboard data...");
 
-    // Get all users who have solutions, comments, or votes
     const [usersWithSolutions, usersWithComments, usersWithVotes] = await Promise.all([
       database.solution.findMany({
         select: { userId: true },
@@ -35,11 +33,8 @@ export async function POST(request: NextRequest) {
       ...usersWithVotes.map(v => v.userId),
     ]);
 
-    console.log(`Found ${allUserIds.size} users with activity`);
-
     let updatedCount = 0;
 
-    // Calculate stats for each user
     for (const userId of allUserIds) {
       try {
         const [solutionsCount, commentsCount, upvotesGiven, solutionsUpvotes, commentsUpvotes] = await Promise.all([

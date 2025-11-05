@@ -1,9 +1,9 @@
 import { database } from "@/app/database";
 import { clerkClient } from "@/app/auth/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 // GET /api/community/stats - Get community statistics
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const [totalSolutions, totalComments, totalChallenges] = await Promise.all([
       database.solution.count(),

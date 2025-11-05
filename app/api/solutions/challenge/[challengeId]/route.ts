@@ -18,15 +18,6 @@ export async function POST(
     const body = await request.json();
     const { description, canvasData } = body;
 
-    // Debug logging
-    console.log("Creating solution with canvas data:", {
-      challengeId,
-      description: description?.substring(0, 50) + "...",
-      hasCanvasData: !!canvasData,
-      canvasDataType: typeof canvasData,
-      canvasDataKeys: canvasData ? Object.keys(canvasData) : null,
-    });
-
     if (!description) {
       return NextResponse.json(
         { error: "Description is required" },
@@ -34,7 +25,6 @@ export async function POST(
       );
     }
 
-    // Verify challenge exists
     const challenge = await database.challenge.findUnique({
       where: { id: challengeId },
     });
@@ -43,14 +33,6 @@ export async function POST(
       return NextResponse.json(
         { error: "Challenge not found" },
         { status: 404 }
-      );
-    }
-
-    // Check canvas data size (limit to 1MB)
-    if (canvasData && JSON.stringify(canvasData).length > 1_000_000) {
-      return NextResponse.json(
-        { error: "Canvas data is too large (max 1MB)" },
-        { status: 400 }
       );
     }
 
@@ -63,7 +45,6 @@ export async function POST(
       },
     });
 
-    // Return solution with canvas data included
     return NextResponse.json({
       ...solution,
       canvasData: solution.canvasData,
@@ -111,7 +92,6 @@ export async function GET(
       database.solution.count({ where: { challengeId } }),
     ]);
 
-    // Fetch user data from Clerk
     const userIds = [...new Set(solutions.map((s) => s.userId))];
     const client = await clerkClient();
     const users = await Promise.all(
@@ -134,7 +114,6 @@ export async function GET(
         ...sol,
         commentsCount: sol._count.comments,
         user: userMap.get(sol.userId) || null,
-        // Ensure canvasData is included in response
         canvasData: sol.canvasData,
       })),
       meta: {

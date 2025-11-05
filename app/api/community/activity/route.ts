@@ -1,9 +1,9 @@
 import { database } from "@/app/database";
 import { clerkClient } from "@/app/auth/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 // GET /api/community/activity - Get recent community activity
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const recentSolutions = await database.solution.findMany({
       take: 5,
@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Fetch user data
     const client = await clerkClient();
     const solutionsWithUsers = await Promise.all(
       recentSolutions.map(async (solution) => {

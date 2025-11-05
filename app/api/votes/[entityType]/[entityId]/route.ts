@@ -16,7 +16,6 @@ export async function DELETE(
 
     const { entityType, entityId } = await params;
 
-    // Validate entityType
     if (!["challenge", "solution", "comment"].includes(entityType)) {
       return NextResponse.json(
         { error: "Invalid entityType" },
@@ -24,9 +23,7 @@ export async function DELETE(
       );
     }
 
-    // Perform atomic delete operation in transaction
     const result = await database.$transaction(async (tx) => {
-      // Find and delete vote using the correct unique constraint
       let existing;
       if (entityType === "challenge") {
         existing = await tx.vote.findUnique({
@@ -65,7 +62,6 @@ export async function DELETE(
         where: { id: existing.id },
       });
 
-      // Recompute counts using the correct foreign key
       let upvotes, downvotes;
       if (entityType === "challenge") {
         upvotes = await tx.vote.count({
@@ -90,7 +86,6 @@ export async function DELETE(
         });
       }
 
-      // Update entity counters
       if (entityType === "solution") {
         await tx.solution.update({
           where: { id: entityId },

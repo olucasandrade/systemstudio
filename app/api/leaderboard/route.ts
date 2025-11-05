@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = Number.parseInt(searchParams.get("limit") || "50", 10);
 
-    // Get existing user stats from database (much more efficient)
     const userStats = await database.userStats.findMany({
       orderBy: { score: "desc" },
       take: limit,
@@ -21,7 +20,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data: [] });
     }
 
-    // Only fetch user data for users who have stats
     const client = await clerkClient();
     
     const usersWithData = await Promise.all(

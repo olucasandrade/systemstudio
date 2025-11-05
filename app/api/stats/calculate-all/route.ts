@@ -1,10 +1,9 @@
 import { auth } from "@/app/auth/server";
 import { database } from "@/app/database";
-import { clerkClient } from "@/app/auth/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 // POST /api/stats/calculate-all - Calculate stats for all users (admin only)
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const { userId } = await auth();
 
@@ -12,7 +11,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get all users who have solutions, comments, or votes
     const [usersWithSolutions, usersWithComments, usersWithVotes] = await Promise.all([
       database.solution.findMany({
         select: { userId: true },
@@ -34,7 +32,6 @@ export async function POST(request: NextRequest) {
       ...usersWithVotes.map(v => v.userId),
     ]);
 
-    // Calculate stats for each user
     const statsPromises = Array.from(allUserIds).map(async (userId) => {
       try {
         const [solutions, comments, votes] = await Promise.all([
@@ -78,7 +75,6 @@ export async function POST(request: NextRequest) {
 
     const stats = (await Promise.all(statsPromises)).filter(Boolean);
 
-    // Batch update all stats
     const updatePromises = stats.map(stat => 
       database.userStats.upsert({
         where: { userId: stat!.userId },

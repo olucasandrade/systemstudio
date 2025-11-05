@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { entityType, entityId, voteType } = body;
 
-    // Validate inputs
     if (!["challenge", "solution", "comment"].includes(entityType)) {
       return NextResponse.json(
         { error: "Invalid entityType. Must be 'challenge', 'solution', or 'comment'" },
@@ -36,9 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Perform atomic vote operation in transaction
     const result = await database.$transaction(async (tx) => {
-      // Find existing vote using the correct unique constraint
       let existing;
       if (entityType === "challenge") {
         existing = await tx.vote.findUnique({
@@ -69,14 +66,12 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Create or update vote
       if (!existing) {
         const voteData: { userId: string, voteType: string, challengeId?: string, solutionId?: string, commentId?: string } = {
           userId,
           voteType,
         };
         
-        // Set the appropriate foreign key based on entity type
         if (entityType === "challenge") {
           voteData.challengeId = entityId;
         } else if (entityType === "solution") {
@@ -94,9 +89,7 @@ export async function POST(request: NextRequest) {
           data: { voteType },
         });
       }
-      // If same vote type, it's a no-op
 
-      // Recompute counts from vote table using the correct foreign key
       let upvotes, downvotes;
       if (entityType === "challenge") {
         upvotes = await tx.vote.count({
@@ -121,7 +114,6 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Update entity counters
       if (entityType === "solution") {
         await tx.solution.update({
           where: { id: entityId },

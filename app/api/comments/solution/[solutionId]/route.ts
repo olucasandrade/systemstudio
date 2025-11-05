@@ -78,7 +78,6 @@ export async function GET(
       database.comment.count({ where: { solutionId } }),
     ]);
 
-    // Fetch user data from Clerk
     const userIds = [...new Set(comments.map((c) => c.userId))];
     const client = await clerkClient();
     const users = await Promise.all(

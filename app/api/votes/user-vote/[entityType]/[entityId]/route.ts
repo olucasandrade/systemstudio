@@ -16,7 +16,6 @@ export async function GET(
 
     const { entityType, entityId } = await params;
 
-    // Validate entityType
     if (!["challenge", "solution", "comment"].includes(entityType)) {
       return NextResponse.json(
         { error: "Invalid entityType" },
@@ -24,7 +23,6 @@ export async function GET(
       );
     }
 
-    // Find vote using the correct unique constraint
     let vote;
     if (entityType === "challenge") {
       vote = await database.vote.findUnique({
