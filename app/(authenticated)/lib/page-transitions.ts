@@ -27,7 +27,7 @@ export const pageTransitions = {
       main.style.transition = 'all 0.3s ease-in-out';
       
       // Trigger reflow
-      main.offsetHeight;
+      void main.offsetHeight;
       
       setTimeout(() => {
         main.style.opacity = '1';
@@ -93,31 +93,6 @@ export const pageTransitions = {
     }
   },
 
-  // Loading overlay animation
-  showLoadingOverlay: () => {
-    const overlay = document.createElement('div');
-    overlay.id = 'page-loading-overlay';
-    overlay.className = 'fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm';
-    overlay.innerHTML = `
-      <div class="flex flex-col items-center gap-4">
-        <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-sm text-muted-foreground">Loading...</p>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-  },
-
-  hideLoadingOverlay: () => {
-    const overlay = document.getElementById('page-loading-overlay');
-    if (overlay) {
-      overlay.style.opacity = '0';
-      overlay.style.transition = 'opacity 0.3s ease-in-out';
-      setTimeout(() => {
-        overlay.remove();
-      }, 300);
-    }
-  },
-
   // Button click animation with navigation
   buttonClickWithTransition: (button: HTMLElement, callback: () => void, transitionType: 'fade' | 'scale' | 'slide' = 'fade') => {
     // Button click animation
@@ -126,9 +101,6 @@ export const pageTransitions = {
     
     setTimeout(() => {
       button.style.transform = 'scale(1)';
-      
-      // Show loading overlay
-      pageTransitions.showLoadingOverlay();
       
       // Execute transition based on type
       setTimeout(() => {
@@ -143,11 +115,6 @@ export const pageTransitions = {
             pageTransitions.slideTransition('left', callback);
             break;
         }
-        
-        // Hide loading overlay after transition
-        setTimeout(() => {
-          pageTransitions.hideLoadingOverlay();
-        }, 500);
       }, 200);
     }, 150);
   }
