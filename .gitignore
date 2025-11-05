@@ -281,3 +281,6 @@ packages/database/generated
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Prisma
+generated/client
