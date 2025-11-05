@@ -120,29 +120,10 @@ export const pageTransitions = {
   }
 };
 
-// Navigation enhancement with transitions
+// Note: Navigation enhancement is now handled by Next.js router
+// This function is kept for backward compatibility but navigation
+// should use Next.js Link components with router.push()
 export const enhanceNavigation = () => {
-  // Intercept all internal navigation
-  document.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    const link = target.closest('a[href^="/"]');
-    
-    if (link && !link.hasAttribute('data-no-transition')) {
-      e.preventDefault();
-      const href = link.getAttribute('href');
-      
-      if (href) {
-        pageTransitions.buttonClickWithTransition(
-          link as HTMLElement,
-          () => {
-            window.location.href = href;
-          },
-          'fade'
-        );
-      }
-    }
-  });
-
   // Handle browser back/forward
   window.addEventListener('popstate', () => {
     pageTransitions.enterPage();

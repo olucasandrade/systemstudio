@@ -10,8 +10,7 @@ import Link from "next/link";
 import { VoteButtons } from "./vote-buttons";
 import { CommentList } from "./comment-list";
 import { TruncatedRichTextDisplay } from "./truncated-rich-text-display";
-import { useAuth } from "@/app/auth/client";
-import { Solution } from "@/app/database";
+import { Solution } from "../hooks/use-challenges";
 
 interface SolutionCardProps {
   solution: (Solution & { commentsCount: number, user: { firstName: string, lastName: string, imageUrl: string } })
@@ -20,7 +19,7 @@ interface SolutionCardProps {
 
 export function SolutionCard({ solution, challengeId }: SolutionCardProps) {
   const [showComments, setShowComments] = useState(false);
-  const [commentsCount, setCommentsCount] = useState(solution.commentsCount || 0);
+  const [commentsCount] = useState(solution.commentsCount || 0);
 
   const userName = solution.user
     ? `${solution.user.firstName || ""} ${solution.user.lastName || ""}`.trim() || "Anonymous"
@@ -40,7 +39,10 @@ export function SolutionCard({ solution, challengeId }: SolutionCardProps) {
           </div>
         </div>
         <div className="flex gap-2">
-          <Link href={`/challenges/${challengeId}/solutions/${solution.id}`}>
+          <Link 
+            href={`/challenges/${challengeId}/solutions/${solution.id}`}
+            prefetch={true}
+          >
             <Button variant="outline" size="sm">
               <Eye className="mr-1 h-4 w-4" />
               View

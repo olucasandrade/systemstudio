@@ -47,7 +47,7 @@ export default async function SolutionViewPage({
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
-        <Link href={`/challenges/${challengeId}`}>
+        <Link href={`/challenges/${challengeId}`} prefetch={true}>
           <Button variant="ghost" className="mb-4">
             ← Back to Challenge
           </Button>

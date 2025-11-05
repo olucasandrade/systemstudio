@@ -2,38 +2,47 @@
 
 import { Card } from "@/app/design-system/components/ui/card";
 import { Badge } from "@/app/design-system/components/ui/badge";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { animations, addHoverAnimation } from "../lib/animations";
 import { AnimatedButton } from "../components/animated-button";
-import { Challenge } from "@/app/database";
+import { type Challenge } from "../hooks/use-challenges";
 import { getDifficultyColor } from "@/app/lib/utils";
-
-interface ChallengeWithCount extends Challenge {
-  solutionsCount: number;
-}
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 interface InfiniteChallengesListProps {
-  initialChallenges: ChallengeWithCount[];
+  initialChallenges: Challenge[];
   initialHasMore: boolean;
 }
 
 export function InfiniteChallengesList({ initialChallenges, initialHasMore }: InfiniteChallengesListProps) {
-  const getUniqueChallenges = (challengesList: ChallengeWithCount[]): ChallengeWithCount[] => {
-    const seen = new Map<string, ChallengeWithCount>();
-    challengesList.forEach(challenge => {
-      if (!seen.has(challenge.id as string)) {
-        seen.set(challenge.id as string, challenge);
-      }
-    });
-    return Array.from(seen.values());
-  };
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["challenges", "infinite"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await fetch(
+        `/api/challenges?page=${pageParam}&pageSize=20&sort=createdAt&order=desc`
+      );
+      if (!response.ok) throw new Error("Failed to fetch challenges");
+      return response.json();
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.meta.page < lastPage.meta.totalPages
+        ? lastPage.meta.page + 1
+        : undefined;
+    },
+    initialData: {
+      pages: [{ data: initialChallenges, meta: { page: 1, pageSize: 20, total: initialChallenges.length, totalPages: 1 } }],
+      pageParams: [1],
+    },
+  });
 
-  const [challenges, setChallenges] = useState<ChallengeWithCount[]>(() => 
-    getUniqueChallenges(initialChallenges)
-  );
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
+  const challenges = data?.pages.flatMap((page) => page.data) || initialChallenges;
+  const hasMore = hasNextPage ?? initialHasMore;
 
   useEffect(() => {
     animations.fadeInUp('[data-animate="fadeInUp"]', 0);
@@ -55,33 +64,10 @@ export function InfiniteChallengesList({ initialChallenges, initialHasMore }: In
     });
   }, []);
 
-  const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
-
-    setLoading(true);
-    try {
-      const nextPage = page + 1;
-      const response = await fetch(`/api/challenges?page=${nextPage}&pageSize=20&sort=createdAt&order=desc`);
-      
-      if (!response.ok) throw new Error("Failed to fetch challenges");
-      
-      const data = await response.json();
-      
-      setChallenges(prev => {
-        const existingIds = new Set(prev.map(challenge => challenge.id));
-        const newChallenges = data.data.filter((challenge: ChallengeWithCount) => 
-          !existingIds.has(challenge.id)
-        );
-        return [...prev, ...newChallenges];
-      });
-      setHasMore(data.meta.page < data.meta.totalPages);
-      setPage(nextPage);
-    } catch (error) {
-      console.error("Error loading more challenges:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [loading, hasMore, page]);
+  const loadMore = useCallback(() => {
+    if (isFetchingNextPage || !hasMore) return;
+    fetchNextPage();
+  }, [isFetchingNextPage, hasMore, fetchNextPage]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -133,7 +119,7 @@ export function InfiniteChallengesList({ initialChallenges, initialHasMore }: In
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                {challenge.tags.slice(0, 2).map((tag) => (
+                {challenge.tags.slice(0, 2).map((tag: string) => (
                   <Badge 
                       key={tag}
                       variant="secondary"
@@ -174,7 +160,7 @@ export function InfiniteChallengesList({ initialChallenges, initialHasMore }: In
       </div>
 
       {/* Loading indicator */}
-      {loading && (
+      {isFetchingNextPage && (
         <div className="flex justify-center py-8">
           <div className="flex items-center gap-2 text-muted-foreground">
             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>

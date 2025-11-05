@@ -2,6 +2,7 @@ import { auth, currentUser } from "@/app/auth/server";
 import type { ReactNode } from "react";
 import { Header } from "./components/header";
 import { AnimationProvider } from "./components/animation-provider";
+import { QueryProvider } from "./providers/query-provider";
 
 type AppLayoutProperties = {
   readonly children: ReactNode;
@@ -16,10 +17,12 @@ const AppLayout = async ({ children }: AppLayoutProperties) => {
   }
 
   return (
-    <AnimationProvider>
-      <Header />
-      {children}
-    </AnimationProvider>
+    <QueryProvider>
+      <AnimationProvider>
+        <Header />
+        {children}
+      </AnimationProvider>
+    </QueryProvider>
   )
 
 };

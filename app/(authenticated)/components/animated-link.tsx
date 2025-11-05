@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { pageTransitions } from "../lib/page-transitions";
-import { ReactNode } from "react";
+import { ReactNode, useTransition } from "react";
 
 interface AnimatedLinkProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ interface AnimatedLinkProps {
   className?: string;
   transitionType?: "fade" | "scale" | "slide";
   external?: boolean;
+  prefetch?: boolean;
 }
 
 export function AnimatedLink({
@@ -18,24 +20,31 @@ export function AnimatedLink({
   className = "",
   transitionType = "fade",
   external = false,
+  prefetch = true,
 }: AnimatedLinkProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
   const handleClick = (e: React.MouseEvent) => {
     if (external) return;
     
     e.preventDefault();
-    pageTransitions.buttonClickWithTransition(
-      e.currentTarget as HTMLElement,
-      () => {
-        window.location.href = href;
-      },
-      transitionType
-    );
+    startTransition(() => {
+      pageTransitions.buttonClickWithTransition(
+        e.currentTarget as HTMLElement,
+        () => {
+          router.push(href);
+        },
+        transitionType
+      );
+    });
   };
 
   return (
     <Link
       href={href}
-      className={`button-hover transition-all duration-200 ${className}`}
+      prefetch={prefetch}
+      className={`button-hover transition-all duration-200 ${className} ${isPending ? 'opacity-70' : ''}`}
       onClick={handleClick}
     >
       {children}

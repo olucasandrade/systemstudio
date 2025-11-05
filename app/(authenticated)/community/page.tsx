@@ -123,7 +123,7 @@ export default async function CommunityPage() {
         <Card className="p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold">Recent Solutions</h2>
-            <Link href="/challenges">
+            <Link href="/challenges" prefetch={true}>
               <Button variant="outline" size="sm">
                 View All
               </Button>

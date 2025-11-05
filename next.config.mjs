@@ -7,6 +7,7 @@ const nextConfig = {
     devIndicators: false,
     experimental: {
         authInterrupts: true,
+        optimizePackageImports: ['@tanstack/react-query', 'lucide-react'],
     },
     webpack: (config, { isServer }) => {
         if (isServer) {
