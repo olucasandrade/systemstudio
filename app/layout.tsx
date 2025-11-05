@@ -1,7 +1,11 @@
 import "./styles.css";
 import { DesignSystemProvider } from "@/app/design-system";
 import { fonts } from "@/app/design-system/lib/fonts";
+import { defaultMetadata } from "@/app/seo/metadata";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
+
+export const metadata: Metadata = defaultMetadata;
 
 type RootLayoutProperties = {
   readonly children: ReactNode;
